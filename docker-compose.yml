@@ -1,0 +1,42 @@
+version: '2'
+services:
+    elasticsearch:
+        image: elasticsearch:latest
+        ports:
+            - "9200:9200"
+            - "9300:9300"
+        expose:
+            - "9200"
+            - "9300"
+        # volumes:
+        #     - /Users/anemtsov/containers/docker-elk/logstash_confs:/etc/logstash
+        #     - /Users/anemtsov/mnt/apache2:/log
+        volumes_from:
+            - dataelk
+
+    dataelk:
+        image: busybox
+        volumes:
+            - /data
+
+    kibana:
+        image: kibana:latest
+        depends_on:
+            - elasticsearch
+        ports:
+            - "8080:80"
+            - "5601:5601"
+        links:
+            - "elasticsearch:elasticsearch"
+
+    logstash:
+        image: logstash
+        command: logstash -f /config-dir/simple.conf
+        ports:
+            - "3338:3338"
+        depends_on:
+            - elasticsearch
+        links:
+            - "elasticsearch:elasticsearch"
+        volumes:
+            - "$PWD/logstash_confs:/config-dir"
